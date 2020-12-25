@@ -3,6 +3,9 @@
 PIXEL_COUNT = 500
 
 def valueToGRB(value):
+    """
+    Converts a 32 bit int to its GRB components
+    """
     assert Node.MIN_VALUE <= value and value < Node.MAX_VALUE
     B = value & 0xFF
     R = (value & 0xFF00) >> 8
@@ -10,26 +13,46 @@ def valueToGRB(value):
     return [G, R, B]
 
 class Node:
+    """
+    This class represents a node of the BST
+    """
     MIN_VALUE = 255 # so its never 100% dark
     MAX_VALUE = 1 << 24 # three 8-bit values
     pixels = None
     sorted_coords_w_idx = None # [x,y,z,led_idx]
-    def __init__(self, lchild, rchild, idx, value):
+    def __init__(self, idx, value):
+        """
+        idx is index of the node in the BST. This is useful to retreive the 
+            led index (see get_led_idx)
+        value is the value stored in the node. This then determines the color of
+            the corresponding led
+        """
         # initialisation must be done before making a node
-        #assert Node.pixels != None and Node.sorted_coords_w_idx != None
-        assert isinstance(lchild, Node) or lchild == None
-        assert isinstance(rchild, Node) or rchild == None
         assert 0 <= idx # and led_idx < 500, but don't want to hardcode 500
         assert Node.MIN_VALUE <= value and value < Node.MAX_VALUE
-        self.lchild = lchild
-        self.rchild = rchild
+        self.lchild = None
+        self.rchild = None
         self.idx = idx # index of the led in pixels
         self.value = value
     
     def lchild_idx(self):
+        """
+        returns the index of the left child. 
+        This way, because my list is sorted by height, the children will be
+        physically below their parents. 
+        """
         return 2*self.idx + 1
     def rchild_idx(self):
+        """
+        returns the index of the right child. 
+        """
         return 2*self.idx + 2
+
+    def get_led_idx(self):
+        """
+        Gets the index of the corresponding led in the pixels array
+        """
+        return Node.sorted_coords_w_idx[self.idx][3]
 
     def insert_rnd_val(self):
         """
@@ -37,20 +60,21 @@ class Node:
         Returns whether the insertion was successful (True) or not (False)
         """
         import random
-        rnd_val = random.randint(Node.MIN_VALUE, Node.MAX_VALUE)
+        rnd_val = random.randrange(Node.MIN_VALUE, Node.MAX_VALUE)
         return self.insert(rnd_val)
 
 
-    def get_led_idx(self):
-        return Node.sorted_coords_w_idx[self.idx][3]
 
     def blink_led(self, value):
         """
-        Blink the led at index sorted_coords_w_idx[self.idx][3]
-        So the led corresponding to the node
+        Blink the corresponding led with value as color.
+        This is used to "show" the path that a new insertion takes.
+        Each time a new value passes through some intermediate node,
+        it makes it blink to show that it went through there.
         """
         import time
-        blink_delay = 0.5
+        # TODO change back to .5
+        blink_delay = 0.1
         led_idx = self.get_led_idx()
         GRB = valueToGRB(value)
         print("blink:", GRB, " at ", led_idx)
@@ -74,8 +98,7 @@ class Node:
 
     def show_led(self):
         """
-        Set the led corresponding to this Node to the given value
-        Also calls pixels.show()
+        Shows the led corresponding to this node
         """
         GRB = valueToGRB(self.value)
         # TODO RE-ENABLE!!!
@@ -84,11 +107,15 @@ class Node:
         print("set led to", GRB)
 
     def insert(self, value):
+        """
+        Inserts the given value from the current node (self)
+        It will recursively insert until it finds a spot that is empty
+        """
         if value < self.value:
             if self.lchild_idx() >= PIXEL_COUNT:
                 return False 
             if self.lchild == None:
-                self.lchild = Node(None, None, self.lchild_idx(), value)
+                self.lchild = Node(self.lchild_idx(), value)
                 self.lchild.show_led()
                 print("Inserted ", value, " at index ", self.lchild.get_led_idx(), '\n')
             else:
@@ -98,7 +125,7 @@ class Node:
             if self.rchild_idx() >= PIXEL_COUNT:
                 return False
             if self.rchild == None:
-                self.rchild = Node(None, None, self.rchild_idx(), value)
+                self.rchild = Node(self.rchild_idx(), value)
                 self.rchild.show_led()
                 print("Inserted ", value, " at index ", self.rchild.get_led_idx(), '\n')
             else:
@@ -107,9 +134,16 @@ class Node:
         return True # insertion succesful
 
 def clear_pixels(pixels):
+    """
+    Clears the pixels array and calls show()
+    This is useful at the end of the construction of a BST
+    to clear for the next BST.
+    """
     for led_idx in range(PIXEL_COUNT):
         pixels[led_idx] = [0,0,0]
-    pixels.show()
+    # TODO RE-ENABLE!!!
+    # pixels.show()
+    print('\n' , "Cleared pixels", '\n')
 
 
 def xmaslight():
@@ -178,19 +212,20 @@ def xmaslight():
     # TODO RE-ENABLE!!!
     Node.pixels = [] #pixels
     Node.sorted_coords_w_idx = sorted
-    root = Node(None, None, idx=0, value=int(Node.MAX_VALUE/2))
+    root = Node(idx=0, value=int(Node.MAX_VALUE/2))
     root.show_led()
 
     # print(root)
     while True:
         could_insert = True
         while could_insert:
-            # TODO RE-ENABLE!!!
-            # could_insert = root.insert_rnd_val(pixels)
             could_insert = root.insert_rnd_val()
-        return
         # TODO RE-ENABLE!!!
-        clear_pixels(pixels)
+        #clear_pixels(pixels)
+        clear_pixels(np.zeros((PIXEL_COUNT, 3)))
+        # make a new root
+        root = Node(idx=0, value=int(Node.MAX_VALUE/2))
+        root.show_led()
     return 'DONE'
 
 
