@@ -73,27 +73,25 @@ class Node:
         it makes it blink to show that it went through there.
         """
         import time
-        # TODO change back to .5
-        blink_delay = 0.1
+        blink_delay = 0.5
         led_idx = self.get_led_idx()
         GRB = valueToGRB(value)
-        print("blink:", GRB, " at ", led_idx)
-        # TODO RE-ENABLE!!!
-        # old_GRB = pixels[led_idx]
-        # pixels[led_idx] = [0,0,0]
-        # pixels.show()
-        # time.sleep(blink_delay)
-        # pixels[led_idx] = GRB
-        # pixels.show()
-        # time.sleep(blink_delay)
-        # pixels[led_idx] = old_GRB
-        # pixels.show()
+        # print("blink:", GRB, " at ", led_idx)
+        old_GRB = pixels[led_idx]
+        pixels[led_idx] = [0,0,0]
+        pixels.show()
+        time.sleep(blink_delay)
+        pixels[led_idx] = GRB
+        pixels.show()
+        time.sleep(blink_delay)
+        pixels[led_idx] = old_GRB
+        pixels.show()
 
-        print("[0,0,0]")
-        time.sleep(blink_delay)
-        print(GRB)
-        time.sleep(blink_delay)
-        print("old GRB")
+        # print("[0,0,0]")
+        # time.sleep(blink_delay)
+        # print(GRB)
+        # time.sleep(blink_delay)
+        # print("old GRB")
 
 
     def show_led(self):
@@ -101,10 +99,9 @@ class Node:
         Shows the led corresponding to this node
         """
         GRB = valueToGRB(self.value)
-        # TODO RE-ENABLE!!!
-        # pixels[self.get_led_idx()] = GRB
-        # pixels.show()
-        print("set led to", GRB)
+        pixels[self.get_led_idx()] = GRB
+        pixels.show()
+        # print("set led to", GRB)
 
     def insert(self, value):
         """
@@ -141,9 +138,9 @@ def clear_pixels(pixels):
     """
     for led_idx in range(PIXEL_COUNT):
         pixels[led_idx] = [0,0,0]
-    # TODO RE-ENABLE!!!
-    # pixels.show()
-    print('\n' , "Cleared pixels", '\n')
+    
+    pixels.show()
+    # print('\n' , "Cleared pixels", '\n')
 
 
 def xmaslight():
@@ -153,9 +150,8 @@ def xmaslight():
     
     # Here are the libraries I am currently using:
     import time
-    # TODO RE-ENABLE !!!
-    # import board
-    # import neopixel
+    import board
+    import neopixel
     import re
     import math
     
@@ -171,9 +167,8 @@ def xmaslight():
     
     # IMPORT THE COORDINATES (please don't break this bit)
     
-    # TODO RE-ENABLE!!!
-    # coordfilename = "Python/coords.txt"
-    coordfilename = "coords.txt"
+    coordfilename = "Python/coords.txt"
+    # coordfilename = "coords.txt"
 	
     fin = open(coordfilename,'r')
     coords_raw = fin.readlines()
@@ -191,8 +186,7 @@ def xmaslight():
     #set up the pixels (AKA 'LEDs')
     PIXEL_COUNT = len(coords) # this should be 500
     
-    # TODO RE-ENABLE!!!
-    # pixels = neopixel.NeoPixel(board.D18, PIXEL_COUNT, auto_write=False)
+    pixels = neopixel.NeoPixel(board.D18, PIXEL_COUNT, auto_write=False)
     
     
     # YOU CAN EDIT FROM HERE DOWN
@@ -209,20 +203,17 @@ def xmaslight():
     sorted = np.flip(sorted_incr, axis=0)
     print(sorted[:10, :])
 
-    # TODO RE-ENABLE!!!
-    Node.pixels = [] #pixels
+    Node.pixels = pixels
     Node.sorted_coords_w_idx = sorted
     root = Node(idx=0, value=int(Node.MAX_VALUE/2))
     root.show_led()
 
-    # print(root)
     while True:
         could_insert = True
         while could_insert:
             could_insert = root.insert_rnd_val()
-        # TODO RE-ENABLE!!!
-        #clear_pixels(pixels)
-        clear_pixels(np.zeros((PIXEL_COUNT, 3)))
+        
+        clear_pixels(pixels)
         # make a new root
         root = Node(idx=0, value=int(Node.MAX_VALUE/2))
         root.show_led()
