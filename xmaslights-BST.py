@@ -198,6 +198,7 @@ def xmaslight():
     coords_np = np.array(coords_w_idx)
 
     #first we sort the coordinates by height (in increasing order)
+    # see : https://stackoverflow.com/a/2828121
     sorted_incr = coords_np[coords_np[:,2].argsort()]
     # now flip to have by decreasing height
     sorted = np.flip(sorted_incr, axis=0)
